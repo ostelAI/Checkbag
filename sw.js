@@ -1,6 +1,6 @@
 // Macht die App offline nutzbar
-const CACHE = 'checkbag-v1';
-const FILES = ['./', 'index.html', 'manifest.json', 'icon.svg'];
+const CACHE = 'checkbag-v2';
+const FILES = ['./', 'index.html', 'facts.js', 'manifest.json', 'icon.svg', 'logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
