@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c5cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Checkbag">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>Checkbag</title>
+<style>
+  /* Farben werden per JavaScript aus der gewählten Farbe + Hell/Dunkel berechnet */
+  :root {
+    --accent: #7c5cff;
+    --bg: color-mix(in srgb, var(--accent) 9%, #fff);
+    --card: #ffffff;
+    --text: #2a2344;
+    --muted: #7a7394;
+    --accent-soft: color-mix(in srgb, var(--accent) 16%, #fff);
+    --border: color-mix(in srgb, var(--accent) 18%, #fff);
+    --done: #22b573;
+    --danger: #e5484d;
+  }
+  :root.dark {
+    --bg: color-mix(in srgb, var(--accent) 10%, #121016);
+    --card: color-mix(in srgb, var(--accent) 14%, #1c1a22);
+    --text: #f3f1fa;
+    --muted: #a8a3bb;
+    --accent-soft: color-mix(in srgb, var(--accent) 28%, #1c1a22);
+    --border: color-mix(in srgb, var(--accent) 25%, #1c1a22);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 17px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    transition: background .3s;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--bg);
+    padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+    transition: background .3s;
+  }
+  .title-row { display: flex; align-items: center; gap: 8px; }
+  h1 { margin: 0; font-size: 26px; flex: 1; }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--muted); margin: 2px 0 12px; font-size: 15px; }
+  .progress { height: 14px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; }
+  .progress > div {
+    height: 100%; width: 0; background: var(--accent); border-radius: 99px;
+    transition: width .35s ease, background .35s;
+  }
+  .progress.full > div { background: var(--done); }
+  .progress-label { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
+  header > * { max-width: 640px; margin-left: auto; margin-right: auto; }
+
+  section.cat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; margin: 14px 0; overflow: hidden;
+  }
+  .cat-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; font-weight: 700; font-size: 18px;
+    cursor: pointer; user-select: none;
+  }
+  .cat-head .emoji { font-size: 24px; }
+  .cat-head .count { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 600; }
+  .cat-head .count.ok { color: var(--done); }
+  .cat.collapsed ul { display: none; }
+
+  ul { list-style: none; margin: 0; padding: 0 8px 8px; }
+  li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 10px; border-radius: 12px; cursor: pointer; user-select: none;
+    min-height: 52px;
+  }
+  li:active { background: var(--accent-soft); }
+  .box {
+    flex: none; width: 30px; height: 30px; border-radius: 9px;
+    border: 2.5px solid var(--accent); display: grid; place-items: center;
+    transition: background .15s, border-color .15s, transform .15s;
+  }
+  .box svg { width: 18px; height: 18px; opacity: 0; transform: scale(.4); transition: all .15s; }
+  li.checked .box { background: var(--done); border-color: var(--done); transform: scale(1.05); }
+  li.checked .box svg { opacity: 1; transform: scale(1); }
+  li.checked .label { text-decoration: line-through; color: var(--muted); }
+  .label { flex: 1; line-height: 1.3; }
+  .tag {
+    font-size: 12px; background: var(--accent-soft); color: var(--accent);
+    padding: 2px 8px; border-radius: 99px; font-weight: 600; margin-left: 6px; white-space: nowrap;
+  }
+
+  /* Bearbeiten-Modus */
+  .edit-only { display: none !important; }
+  body.editing .edit-only { display: flex !important; }
+  body.editing li { cursor: default; }
+  body.editing .box { display: none; }
+  .mini-btn {
+    flex: none; border: none; background: var(--accent-soft); color: var(--text);
+    width: 38px; height: 38px; border-radius: 10px; font-size: 16px; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .mini-btn.red { color: var(--danger); }
+  .mini-btn:disabled { opacity: .3; }
+  .edit-hint {
+    background: var(--accent); color: #fff; border-radius: 14px; padding: 12px 14px; margin-top: 12px;
+    font-size: 15px; align-items: center; gap: 10px;
+  }
+  .edit-hint button { margin-left: auto; background: #fff; color: var(--accent); }
+
+  .add-row { gap: 8px; padding: 4px 16px 14px; flex-wrap: wrap; align-items: center; }
+  input.text {
+    flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  }
+  .once-toggle { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+  button.btn {
+    font: inherit; font-weight: 600; border: none; border-radius: 12px;
+    padding: 10px 16px; cursor: pointer; background: var(--accent-soft); color: var(--accent);
+  }
+  button.btn.primary { background: var(--accent); color: #fff; }
+  .icon-btn {
+    border: none; background: var(--accent-soft); color: var(--accent);
+    width: 44px; height: 44px; border-radius: 12px; font-size: 20px; cursor: pointer;
+  }
+
+  .new-cat {
+    background: var(--card); border: 2px dashed var(--border); border-radius: 18px;
+    padding: 14px 16px; margin: 14px 0; flex-direction: column; gap: 10px;
+  }
+  .new-cat h3 { margin: 0; font-size: 17px; }
+  .new-cat .row { display: flex; gap: 8px; }
+
+  .emoji-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .emoji-grid button {
+    width: 42px; height: 42px; font-size: 22px; border-radius: 10px; cursor: pointer;
+    border: 2px solid transparent; background: var(--accent-soft);
+  }
+  .emoji-grid button.sel { border-color: var(--accent); }
+
+  footer {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    background: var(--bg); border-top: 1px solid var(--border);
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    display: flex; gap: 10px; justify-content: center;
+    transition: background .3s;
+  }
+  footer .btn { flex: 1; max-width: 300px; padding: 14px; }
+
+  /* Einstellungen (Bottom Sheet) */
+  .sheet-bg {
+    position: fixed; inset: 0; z-index: 15; background: rgba(15, 10, 30, .5);
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .sheet-bg.show { display: flex; }
+  .sheet {
+    background: var(--card); width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto;
+    border-radius: 24px 24px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
+    animation: up .25s ease;
+  }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sheet .grip { width: 44px; height: 5px; border-radius: 9px; background: var(--border); margin: 0 auto 10px; }
+  .sheet h2 { margin: 0 0 4px; display: flex; align-items: center; }
+  .sheet h2 button { margin-left: auto; }
+  .sheet h3 { font-size: 15px; color: var(--muted); margin: 22px 0 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
+  .swatch {
+    width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--card); cursor: pointer;
+    box-shadow: 0 0 0 2px var(--border); position: relative; padding: 0;
+  }
+  .swatch.sel { box-shadow: 0 0 0 3px var(--text); }
+  .swatch.custom {
+    background: conic-gradient(#ff5c8a, #ffb020, #22b573, #3fa7ff, #7c5cff, #ff5c8a);
+    overflow: hidden;
+  }
+  .swatch.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+  .seg { display: flex; background: var(--accent-soft); border-radius: 12px; padding: 4px; }
+  .seg button {
+    flex: 1; font: inherit; font-size: 15px; border: none; background: none; color: var(--text);
+    padding: 9px; border-radius: 9px; cursor: pointer;
+  }
+  .seg button.sel { background: var(--card); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .sheet .big-btn { width: 100%; padding: 14px; margin-top: 4px; }
+  .sheet .small { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  .celebrate {
+    position: fixed; inset: 0; display: none; place-items: center; z-index: 20;
+    background: rgba(20, 15, 40, .55); padding: 16px;
+  }
+  .celebrate.show { display: grid; }
+  .celebrate .card {
+    background: var(--card); border-radius: 24px; padding: 28px 24px; text-align: center; max-width: 340px;
+    animation: pop .35s ease;
+  }
+  .celebrate .big { font-size: 64px; }
+  .celebrate h2 { margin: 8px 0; }
+  .celebrate p { color: var(--muted); margin: 0 0 18px; }
+  @keyframes pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  .confetti { position: fixed; top: -20px; width: 10px; height: 14px; z-index: 30; pointer-events: none; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>🎒 Check<span>bag</span></h1>
+    <button class="icon-btn" id="editBtn" title="Liste bearbeiten">✏️</button>
+    <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙️</button>
+  </div>
+  <p class="subtitle" id="subtitle"></p>
+  <div class="progress" id="progress"><div></div></div>
+  <div class="progress-label" id="progressLabel"></div>
+  <div class="edit-hint edit-only">
+    <span>✏️ Bearbeiten: umbenennen, verschieben, löschen oder neue Sachen hinzufügen.</span>
+    <button class="btn" id="doneEditBtn">Fertig</button>
+  </div>
+</header>
+
+<main>
+  <div id="list"></div>
+
+  <div class="new-cat edit-only">
+    <h3>➕ Neue Kategorie</h3>
+    <div class="emoji-grid" id="catEmojiGrid"></div>
+    <div class="row">
+      <input class="text" id="newCatName" placeholder="Name, z. B. Basteln" enterkeyhint="done">
+      <button class="btn primary" id="addCatBtn">Anlegen</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <button class="btn" id="resetBtn">🔄 Neue Übergabe</button>
+</footer>
+
+<div class="sheet-bg" id="settings">
+  <div class="sheet">
+    <div class="grip"></div>
+    <h2>⚙️ Einstellungen <button class="btn" id="closeSettings">Fertig</button></h2>
+
+    <h3>Dein Name</h3>
+    <input class="text" id="nameInput" placeholder="z. B. Mia" maxlength="20" style="width:100%">
+
+    <h3>Lieblingsfarbe</h3>
+    <div class="swatches" id="swatches"></div>
+
+    <h3>Hell oder dunkel?</h3>
+    <div class="seg" id="modeSeg">
+      <button data-mode="auto">🌗 Automatisch</button>
+      <button data-mode="light">☀️ Hell</button>
+      <button data-mode="dark">🌙 Dunkel</button>
+    </div>
+
+    <h3>Konfetti beim Fertigwerden</h3>
+    <div class="seg" id="confettiSeg">
+      <button data-v="on">🎉 An</button>
+      <button data-v="off">Aus</button>
+    </div>
+
+    <h3>Meine Liste</h3>
+    <button class="btn primary big-btn" id="goEditBtn">✏️ Kategorien & Sachen bearbeiten</button>
+    <button class="btn big-btn" id="restoreBtn" style="margin-top:10px">↩️ Beispiel-Liste wiederherstellen</button>
+    <p class="small">„Beispiel-Liste wiederherstellen“ ersetzt deine Liste durch die ursprüngliche.</p>
+  </div>
+</div>
+
+<div class="celebrate" id="celebrate">
+  <div class="card">
+    <div class="big">🎉</div>
+    <h2 id="celebrateTitle">Super, alles dabei!</h2>
+    <p>Deine Tasche ist komplett gepackt.</p>
+    <button class="btn primary" id="closeCelebrate">Juhu!</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'checkbag-v1';
+
+const COLORS = [
+  { name: 'Lila', value: '#7c5cff' },
+  { name: 'Rosa', value: '#ec4899' },
+  { name: 'Rot', value: '#ef4444' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Sonnengelb', value: '#eab308' },
+  { name: 'Grün', value: '#16a34a' },
+  { name: 'Türkis', value: '#0d9488' },
+  { name: 'Himmelblau', value: '#0ea5e9' },
+  { name: 'Blau', value: '#2563eb' },
+];
+
+const CAT_EMOJIS = ['📦','📚','👕','👟','🪥','💊','⚽','🎨','🎵','🩰','🏊','🐴','🎮','📱','🧸','🍎','🔑','💰','🎒','⭐'];
+
+const DEFAULT_DATA = [
+  { name: 'Schule', emoji: '📚', items: [
+    'Schulranzen', 'Federmäppchen', 'Hausaufgabenheft', 'Hefte & Bücher', 'Hausaufgaben',
+    'Sportbeutel', 'Brotdose', 'Trinkflasche', 'Elternbriefe / Zettel'
+  ]},
+  { name: 'Kleidung', emoji: '👕', items: [
+    'Jacke', 'Schuhe', 'Hausschuhe', 'Schlafanzug', 'Lieblingspulli', 'Mütze / Schal / Handschuhe'
+  ]},
+  { name: 'Bad & Gesundheit', emoji: '🪥', items: ['Zahnspange', 'Brille', 'Medikamente'] },
+  { name: 'Freizeit & Hobbys', emoji: '⚽', items: [
+    'Handy + Ladekabel', 'Kopfhörer', 'Kuscheltier', 'Sachen fürs Hobby / Verein', 'Buch zum Lesen'
+  ]},
+  { name: 'Sonstiges', emoji: '🔑', items: [
+    'Schlüssel', 'Portemonnaie / Taschengeld', 'Busfahrkarte', 'Krankenkassenkarte'
+  ]}
+];
+
+const DEFAULT_SETTINGS = { name: '', color: '#7c5cff', mode: 'auto', confetti: true };
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+
+function defaultCategories() {
+  return DEFAULT_DATA.map(c => ({
+    id: uid(), name: c.name, emoji: c.emoji, collapsed: false,
+    items: c.items.map(name => ({ id: uid(), name, checked: false, once: false }))
+  }));
+}
+
+function load() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
+  if (!s) s = { categories: defaultCategories(), lastReset: null };
+  s.settings = Object.assign({}, DEFAULT_SETTINGS, s.settings);
+  return s;
+}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+
+let state = load();
+let editing = false;
+let celebratedThisRound = false;
+let newCatEmoji = CAT_EMOJIS[0];
+
+const $ = id => document.getElementById(id);
+
+const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ---------- Aussehen ---------- */
+
+const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+function applyTheme() {
+  const { color, mode } = state.settings;
+  const root = document.documentElement;
+  root.style.setProperty('--accent', color);
+  const dark = mode === 'dark' || (mode === 'auto' && darkQuery.matches);
+  root.classList.toggle('dark', dark);
+  document.querySelector('meta[name=theme-color]').setAttribute('content', color);
+}
+darkQuery.addEventListener('change', applyTheme);
+
+/* ---------- Liste ---------- */
+
+function render() {
+  document.body.classList.toggle('editing', editing);
+  $('editBtn').style.display = editing ? 'none' : '';
+  const name = state.settings.name.trim();
+  $('subtitle').textContent = name ? `Hast du alles eingepackt, ${name}?` : 'Hast du alles eingepackt?';
+
+  const list = $('list');
+  list.innerHTML = '';
+
+  state.categories.forEach((cat, ci) => {
+    const done = cat.items.filter(i => i.checked).length;
+    const sec = document.createElement('section');
+    sec.className = 'cat' + (cat.collapsed && !editing ? ' collapsed' : '');
+    sec.innerHTML = `
+      <div class="cat-head">
+        <span class="emoji">${cat.emoji}</span>
+        <span>${escapeHtml(cat.name)}</span>
+        <span class="count ${done === cat.items.length && cat.items.length ? 'ok' : ''}">${editing ? '' : `${done}/${cat.items.length}`}</span>
+        <span class="edit-only" style="gap:6px">
+          <button class="mini-btn" data-act="up" ${ci === 0 ? 'disabled' : ''} title="Nach oben">⬆️</button>
+          <button class="mini-btn" data-act="rename" title="Umbenennen">✏️</button>
+          <button class="mini-btn red" data-act="del" title="Kategorie löschen">🗑️</button>
+        </span>
+      </div>
+      <ul></ul>
+      <div class="add-row edit-only">
+        <input class="text" placeholder="Neue Sache…" enterkeyhint="done">
+        <button class="btn primary">+</button>
+        <label class="once-toggle" style="flex-basis:100%"><input type="checkbox"> nur 1× mitnehmen (verschwindet bei „Neue Übergabe“)</label>
+      </div>`;
+
+    sec.querySelector('.cat-head').addEventListener('click', e => {
+      const act = e.target.closest('[data-act]')?.dataset.act;
+      if (act === 'up') {
+        state.categories.splice(ci, 1);
+        state.categories.splice(ci - 1, 0, cat);
+      } else if (act === 'rename') {
+        const n = prompt('Neuer Name für die Kategorie:', cat.name);
+        if (n && n.trim()) cat.name = n.trim();
+      } else if (act === 'del') {
+        if (!confirm(`Kategorie „${cat.name}“ mit allen ${cat.items.length} Sachen löschen?`)) return;
+        state.categories.splice(ci, 1);
+      } else if (!editing) {
+        cat.collapsed = !cat.collapsed;
+      } else return;
+      save(); render();
+    });
+
+    const ul = sec.querySelector('ul');
+    cat.items.forEach((item, ii) => {
+      const li = document.createElement('li');
+      li.className = item.checked && !editing ? 'checked' : '';
+      li.innerHTML = `
+        <span class="box">${CHECK_SVG}</span>
+        <span class="label">${escapeHtml(item.name)}${item.once ? '<span class="tag">nur 1×</span>' : ''}</span>
+        <span class="edit-only" style="gap:6px">
+          <button class="mini-btn" data-act="up" ${ii === 0 ? 'disabled' : ''} title="Nach oben">⬆️</button>
+          <button class="mini-btn" data-act="rename" title="Umbenennen">✏️</button>
+          <button class="mini-btn red" data-act="del" title="Löschen">✕</button>
+        </span>`;
+      li.addEventListener('click', e => {
+        if (editing) {
+          const act = e.target.closest('[data-act]')?.dataset.act;
+          if (act === 'up') {
+            cat.items.splice(ii, 1);
+            cat.items.splice(ii - 1, 0, item);
+          } else if (act === 'rename') {
+            const n = prompt('Neuer Name:', item.name);
+            if (n && n.trim()) item.name = n.trim();
+          } else if (act === 'del') {
+            cat.items.splice(ii, 1);
+          } else return;
+          save(); render();
+          return;
+        }
+        item.checked = !item.checked;
+        if (navigator.vibrate) navigator.vibrate(item.checked ? 15 : 5);
+        save(); render();
+      });
+      ul.appendChild(li);
+    });
+
+    const input = sec.querySelector('.add-row input.text');
+    const once = sec.querySelector('.add-row input[type=checkbox]');
+    const add = () => {
+      const n = input.value.trim();
+      if (!n) return;
+      cat.items.push({ id: uid(), name: n, checked: false, once: once.checked });
+      save(); render();
+      document.querySelectorAll('section.cat')[ci].querySelector('.add-row input.text').focus();
+    };
+    sec.querySelector('.add-row button').addEventListener('click', add);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
+
+    list.appendChild(sec);
+  });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const all = state.categories.flatMap(c => c.items);
+  const done = all.filter(i => i.checked).length;
+  const pct = all.length ? Math.round(done / all.length * 100) : 0;
+  const bar = $('progress');
+  bar.firstElementChild.style.width = pct + '%';
+  bar.classList.toggle('full', all.length > 0 && done === all.length);
+  const left = all.length - done;
+  $('progressLabel').textContent = all.length === 0
+    ? 'Noch keine Sachen auf der Liste – tippe auf ✏️.'
+    : left === 0 ? `Alles dabei! ✅ (${all.length} Sachen)`
+    : `${done} von ${all.length} eingepackt – noch ${left} ${left === 1 ? 'Sache' : 'Sachen'}`;
+
+  if (!editing && all.length && left === 0 && !celebratedThisRound) {
+    celebratedThisRound = true;
+    celebrate();
+  }
+  if (left > 0) celebratedThisRound = false;
+}
+
+function celebrate() {
+  const name = state.settings.name.trim();
+  $('celebrateTitle').textContent = name ? `Super, ${name}! Alles dabei!` : 'Super, alles dabei!';
+  $('celebrate').classList.add('show');
+  if (!state.settings.confetti) return;
+  const colors = [state.settings.color, '#22b573', '#ffb020', '#ff5c8a', '#3fa7ff'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[i % colors.length];
+    document.body.appendChild(c);
+    const fall = c.animate([
+      { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+      { transform: `translateY(${window.innerHeight + 40}px) translateX(${(Math.random() - .5) * 200}px) rotate(${Math.random() * 720}deg)`, opacity: .9 }
+    ], { duration: 1800 + Math.random() * 1500, delay: Math.random() * 400, easing: 'cubic-bezier(.2,.6,.4,1)' });
+    fall.onfinish = () => c.remove();
+  }
+}
+
+function setEditing(on) {
+  editing = on;
+  render();
+}
+
+/* ---------- Neue Kategorie ---------- */
+
+function renderEmojiGrid() {
+  $('catEmojiGrid').innerHTML = CAT_EMOJIS.map(e =>
+    `<button class="${e === newCatEmoji ? 'sel' : ''}" data-e="${e}">${e}</button>`).join('');
+}
+$('catEmojiGrid').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  newCatEmoji = b.dataset.e;
+  renderEmojiGrid();
+});
+
+function addCategory() {
+  const input = $('newCatName');
+  const name = input.value.trim();
+  if (!name) { input.focus(); return; }
+  state.categories.push({ id: uid(), name, emoji: newCatEmoji, collapsed: false, items: [] });
+  input.value = '';
+  save(); render();
+  const secs = document.querySelectorAll('section.cat');
+  const last = secs[secs.length - 1];
+  last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  last.querySelector('.add-row input.text').focus({ preventScroll: true });
+}
+$('addCatBtn').addEventListener('click', addCategory);
+$('newCatName').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });
+
+/* ---------- Einstellungen ---------- */
+
+function renderSettings() {
+  const s = state.settings;
+  $('nameInput').value = s.name;
+  const isPreset = COLORS.some(c => c.value === s.color);
+  $('swatches').innerHTML = COLORS.map(c =>
+    `<button class="swatch ${c.value === s.color ? 'sel' : ''}" style="background:${c.value}" data-c="${c.value}" title="${c.name}"></button>`
+  ).join('') +
+    `<label class="swatch custom ${isPreset ? '' : 'sel'}" title="Eigene Farbe"><input type="color" id="customColor" value="${s.color}"></label>`;
+  $('customColor').addEventListener('input', e => setColor(e.target.value));
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('sel', b.dataset.mode === s.mode));
+  document.querySelectorAll('#confettiSeg button').forEach(b => b.classList.toggle('sel', (b.dataset.v === 'on') === s.confetti));
+}
+
+function setColor(c) {
+  state.settings.color = c;
+  applyTheme(); save();
+  document.querySelectorAll('#swatches .swatch').forEach(el =>
+    el.classList.toggle('sel', el.dataset.c ? el.dataset.c === c : !COLORS.some(x => x.value === c)));
+}
+
+$('swatches').addEventListener('click', e => {
+  const b = e.target.closest('button.swatch');
+  if (b) setColor(b.dataset.c);
+});
+$('modeSeg').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  state.settings.mode = b.dataset.mode;
+  applyTheme(); save(); renderSettings();
+});
+$('confettiSeg').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  state.settings.confetti = b.dataset.v === 'on';
+  save(); renderSettings();
+});
+$('nameInput').addEventListener('input', e => {
+  state.settings.name = e.target.value;
+  save(); render();
+});
+
+function openSettings() { renderSettings(); $('settings').classList.add('show'); }
+function closeSettings() { $('settings').classList.remove('show'); }
+$('settingsBtn').addEventListener('click', openSettings);
+$('closeSettings').addEventListener('click', closeSettings);
+$('settings').addEventListener('click', e => { if (e.target.id === 'settings') closeSettings(); });
+$('goEditBtn').addEventListener('click', () => { closeSettings(); setEditing(true); });
+$('restoreBtn').addEventListener('click', () => {
+  if (!confirm('Deine Liste wirklich durch die Beispiel-Liste ersetzen?')) return;
+  state.categories = defaultCategories();
+  save(); render(); closeSettings();
+});
+
+/* ---------- Sonstiges ---------- */
+
+$('closeCelebrate').addEventListener('click', () => $('celebrate').classList.remove('show'));
+$('editBtn').addEventListener('click', () => setEditing(true));
+$('doneEditBtn').addEventListener('click', () => setEditing(false));
+
+$('resetBtn').addEventListener('click', () => {
+  if (!confirm('Alle Haken entfernen und für die nächste Übergabe neu starten?\n(Sachen mit „nur 1×“ werden dabei gelöscht.)')) return;
+  state.categories.forEach(c => {
+    c.items = c.items.filter(i => !i.once);
+    c.items.forEach(i => i.checked = false);
+  });
+  state.lastReset = new Date().toISOString();
+  celebratedThisRound = false;
+  save(); render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Beim Start nicht sofort feiern, wenn schon alles abgehakt war
+celebratedThisRound = state.categories.flatMap(c => c.items).every(i => i.checked);
+applyTheme();
+renderEmojiGrid();
+render();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
