@@ -22,6 +22,8 @@
     --border: color-mix(in srgb, var(--accent) 18%, #fff);
     --done: #22b573;
     --danger: #e5484d;
+    --home-a: #ec4899;
+    --home-b: #0ea5e9;
   }
   :root.dark {
     --bg: color-mix(in srgb, var(--accent) 10%, #121016);
@@ -48,9 +50,20 @@
     transition: background .3s;
   }
   .title-row { display: flex; align-items: center; gap: 8px; }
-  h1 { margin: 0; font-size: 26px; flex: 1; }
+  .brand { flex: 1; min-width: 0; }
+  h1 { margin: 0; font-size: 24px; white-space: nowrap; }
   h1 span { color: var(--accent); }
-  .subtitle { color: var(--muted); margin: 2px 0 12px; font-size: 15px; }
+  h1 .version { font-size: 11px; font-weight: 600; color: var(--muted); margin-left: 4px; vertical-align: super; }
+  .powered { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .powered img { height: 20px; width: 20px; border-radius: 4px; }
+  .where {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    padding: 6px 12px; border-radius: 99px; font-weight: 700; font-size: 15px;
+    border: none; cursor: pointer; font-family: inherit; color: var(--text);
+  }
+  .where[hidden] { display: none; }
+  .where small { font-weight: 500; color: var(--muted); }
+  .subtitle { color: var(--muted); margin: 8px 0 12px; font-size: 15px; }
   .progress { height: 14px; background: var(--accent-soft); border-radius: 99px; overflow: hidden; }
   .progress > div {
     height: 100%; width: 0; background: var(--accent); border-radius: 99px;
@@ -129,9 +142,10 @@
   }
   button.btn.primary { background: var(--accent); color: #fff; }
   .icon-btn {
-    border: none; background: var(--accent-soft); color: var(--accent);
-    width: 44px; height: 44px; border-radius: 12px; font-size: 20px; cursor: pointer;
+    flex: none; border: none; background: var(--accent-soft); color: var(--accent);
+    width: 42px; height: 42px; border-radius: 12px; font-size: 19px; cursor: pointer;
   }
+  .title-row .icon-btn + .icon-btn { margin-left: -2px; }
 
   .new-cat {
     background: var(--card); border: 2px dashed var(--border); border-radius: 18px;
@@ -156,22 +170,23 @@
   }
   footer .btn { flex: 1; max-width: 300px; padding: 14px; }
 
-  /* Einstellungen (Bottom Sheet) */
+  /* Bottom Sheets (Einstellungen, Kalender) */
   .sheet-bg {
     position: fixed; inset: 0; z-index: 15; background: rgba(15, 10, 30, .5);
     display: none; align-items: flex-end; justify-content: center;
   }
   .sheet-bg.show { display: flex; }
   .sheet {
-    background: var(--card); width: 100%; max-width: 640px; max-height: 88vh; overflow-y: auto;
+    background: var(--card); width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
     border-radius: 24px 24px 0 0; padding: 12px 20px calc(24px + env(safe-area-inset-bottom));
     animation: up .25s ease;
   }
   @keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
   .sheet .grip { width: 44px; height: 5px; border-radius: 9px; background: var(--border); margin: 0 auto 10px; }
-  .sheet h2 { margin: 0 0 4px; display: flex; align-items: center; }
+  .sheet h2 { margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
   .sheet h2 button { margin-left: auto; }
   .sheet h3 { font-size: 15px; color: var(--muted); margin: 22px 0 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .sheet label.field { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 6px; }
   .swatches { display: flex; flex-wrap: wrap; gap: 12px; }
   .swatch {
     width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--card); cursor: pointer;
@@ -189,8 +204,41 @@
     padding: 9px; border-radius: 9px; cursor: pointer;
   }
   .seg button.sel { background: var(--card); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-  .sheet .big-btn { width: 100%; padding: 14px; margin-top: 4px; }
+  .sheet .big-btn { width: 100%; padding: 14px; margin-top: 10px; }
   .sheet .small { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .homes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .homes .home { display: flex; align-items: center; gap: 6px; }
+  .homes .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+  #scheduleOptions.off { display: none; }
+
+  /* Kalender */
+  .now-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 6px; }
+  .now-card { border-radius: 16px; padding: 12px 14px; }
+  .now-card .lbl { font-size: 13px; color: var(--muted); }
+  .now-card .who { font-size: 20px; font-weight: 800; margin-top: 2px; }
+  .next-change { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+  .month-nav { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
+  .month-nav strong { font-size: 18px; }
+  .month-nav button { width: 40px; height: 40px; }
+  .cal { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 15px; }
+  .cal th { font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0; }
+  .cal td { text-align: center; padding: 8px 0; }
+  .cal tr.week td:first-child { border-radius: 10px 0 0 10px; font-size: 12px; color: var(--muted); font-weight: 700; }
+  .cal tr.week td:last-child { border-radius: 0 10px 10px 0; }
+  .cal tr.week.current td { font-weight: 800; }
+  .cal tr.week.current td:first-child { box-shadow: inset 3px 0 0 var(--text); }
+  .cal td.out { opacity: .35; }
+  .cal td.today span {
+    display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--text); color: var(--card);
+  }
+  .cal.editing tr.week { cursor: pointer; }
+  .cal .ovr { font-size: 10px; vertical-align: super; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; margin-top: 8px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .cal-edit-hint { background: var(--accent-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; margin-top: 10px; }
+  .empty-state { text-align: center; padding: 24px 8px; color: var(--muted); }
+  .empty-state .big { font-size: 48px; }
 
   .celebrate {
     position: fixed; inset: 0; display: none; place-items: center; z-index: 20;
@@ -206,6 +254,13 @@
   .celebrate p { color: var(--muted); margin: 0 0 18px; }
   @keyframes pop { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
+  .toast {
+    position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    background: var(--text); color: var(--card); padding: 10px 16px; border-radius: 12px; z-index: 40;
+    font-size: 15px; opacity: 0; transition: opacity .25s; pointer-events: none; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
   .confetti { position: fixed; top: -20px; width: 10px; height: 14px; z-index: 30; pointer-events: none; border-radius: 2px; }
 </style>
 </head>
@@ -213,10 +268,15 @@
 
 <header>
   <div class="title-row">
-    <h1>🎒 Check<span>bag</span></h1>
+    <div class="brand">
+      <h1>🎒 Check<span>bag</span><small class="version" id="version"></small></h1>
+      <div class="powered"><img src="logo.png" alt="" onerror="this.remove()">powered by COC</div>
+    </div>
     <button class="icon-btn" id="editBtn" title="Liste bearbeiten">✏️</button>
+    <button class="icon-btn" id="calBtn" title="Kalender">📅</button>
     <button class="icon-btn" id="settingsBtn" title="Einstellungen">⚙️</button>
   </div>
+  <div><button class="where" id="whereBadge" hidden></button></div>
   <p class="subtitle" id="subtitle"></p>
   <div class="progress" id="progress"><div></div></div>
   <div class="progress-label" id="progressLabel"></div>
@@ -243,6 +303,16 @@
   <button class="btn" id="resetBtn">🔄 Neue Übergabe</button>
 </footer>
 
+<!-- Kalender -->
+<div class="sheet-bg" id="calendar">
+  <div class="sheet">
+    <div class="grip"></div>
+    <h2>📅 Wo bin ich wann? <button class="btn" id="closeCal">Fertig</button></h2>
+    <div id="calBody"></div>
+  </div>
+</div>
+
+<!-- Einstellungen -->
 <div class="sheet-bg" id="settings">
   <div class="sheet">
     <div class="grip"></div>
@@ -267,10 +337,43 @@
       <button data-v="off">Aus</button>
     </div>
 
+    <h3>Wochenplan</h3>
+    <div class="seg" id="schedOnSeg">
+      <button data-v="on">An</button>
+      <button data-v="off">Aus</button>
+    </div>
+    <div id="scheduleOptions">
+      <label class="field">Namen</label>
+      <div class="homes">
+        <div class="home"><span class="dot" style="background:var(--home-a)"></span><input class="text" id="homeA" maxlength="14"></div>
+        <div class="home"><span class="dot" style="background:var(--home-b)"></span><input class="text" id="homeB" maxlength="14"></div>
+      </div>
+      <label class="field">Wie oft wird gewechselt?</label>
+      <div class="seg" id="everySeg">
+        <button data-v="1">Jede Woche</button>
+        <button data-v="2">Alle 2 Wochen</button>
+      </div>
+      <label class="field" id="thisWeekLabel">Diese Woche ist sie bei:</label>
+      <div class="seg" id="thisWeekSeg"></div>
+      <div id="blockPosWrap">
+        <label class="field">Das ist die …</label>
+        <div class="seg" id="blockPosSeg">
+          <button data-v="0">1. Woche dort</button>
+          <button data-v="1">2. Woche dort</button>
+        </div>
+      </div>
+      <button class="btn big-btn" id="editWeeksBtn">📅 Einzelne Wochen ändern (Ferien usw.)</button>
+    </div>
+
     <h3>Meine Liste</h3>
     <button class="btn primary big-btn" id="goEditBtn">✏️ Kategorien & Sachen bearbeiten</button>
-    <button class="btn big-btn" id="restoreBtn" style="margin-top:10px">↩️ Beispiel-Liste wiederherstellen</button>
-    <p class="small">„Beispiel-Liste wiederherstellen“ ersetzt deine Liste durch die ursprüngliche.</p>
+    <button class="btn big-btn" id="restoreBtn">↩️ Beispiel-Liste wiederherstellen</button>
+
+    <h3>Backup</h3>
+    <button class="btn primary big-btn" id="backupBtn">💾 Backup speichern</button>
+    <button class="btn big-btn" id="restoreBackupBtn">📂 Backup laden</button>
+    <input type="file" id="backupFile" accept=".json,application/json" hidden>
+    <p class="small" id="backupInfo"></p>
   </div>
 </div>
 
@@ -283,8 +386,12 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+const APP_VERSION = '1.0.1';
 const STORAGE_KEY = 'checkbag-v1';
+const DAY = 864e5, WEEK = 7 * DAY;
 
 const COLORS = [
   { name: 'Lila', value: '#7c5cff' },
@@ -297,6 +404,8 @@ const COLORS = [
   { name: 'Himmelblau', value: '#0ea5e9' },
   { name: 'Blau', value: '#2563eb' },
 ];
+
+const HOME_COLORS = { a: 'var(--home-a)', b: 'var(--home-b)' };
 
 const CAT_EMOJIS = ['📦','📚','👕','👟','🪥','💊','⚽','🎨','🎵','🩰','🏊','🐴','🎮','📱','🧸','🍎','🔑','💰','🎒','⭐'];
 
@@ -319,6 +428,27 @@ const DEFAULT_DATA = [
 
 const DEFAULT_SETTINGS = { name: '', color: '#7c5cff', mode: 'auto', confetti: true };
 
+/* ---------- Datum & Kalenderwochen (alles in UTC-Tagen, damit Sommerzeit nicht stört) ---------- */
+
+function todayMs() { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); }
+function mondayOf(ms) { return ms - ((new Date(ms).getUTCDay() + 6) % 7) * DAY; }
+function isoWeek(ms) {
+  const thu = mondayOf(ms) + 3 * DAY;
+  const year = new Date(thu).getUTCFullYear();
+  return { year, week: 1 + Math.floor((thu - Date.UTC(year, 0, 1)) / WEEK) };
+}
+function weekKey(ms) { const w = isoWeek(ms); return `${w.year}-W${w.week}`; }
+function fmtDate(ms, opts = { day: 'numeric', month: 'numeric' }) {
+  return new Date(ms).toLocaleDateString('de-DE', { ...opts, timeZone: 'UTC' });
+}
+
+function defaultSchedule() {
+  return { enabled: false, names: { a: 'Mama', b: 'Papa' }, every: 1,
+           ref: { monday: mondayOf(todayMs()), who: 'a' }, overrides: {} };
+}
+
+/* ---------- Speichern & Laden ---------- */
+
 function uid() { return Math.random().toString(36).slice(2, 10); }
 
 function defaultCategories() {
@@ -328,12 +458,20 @@ function defaultCategories() {
   }));
 }
 
+function normalize(s) {
+  if (!s || !Array.isArray(s.categories)) s = { categories: defaultCategories(), lastReset: null };
+  s.settings = Object.assign({}, DEFAULT_SETTINGS, s.settings);
+  const def = defaultSchedule();
+  s.schedule = Object.assign(def, s.schedule);
+  s.schedule.names = Object.assign(def.names, s.schedule.names);
+  s.schedule.overrides = s.schedule.overrides || {};
+  return s;
+}
+
 function load() {
   let s = null;
   try { s = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
-  if (!s) s = { categories: defaultCategories(), lastReset: null };
-  s.settings = Object.assign({}, DEFAULT_SETTINGS, s.settings);
-  return s;
+  return normalize(s);
 }
 
 function save() {
@@ -350,7 +488,42 @@ const $ = id => document.getElementById(id);
 const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ---------- Wochenplan ---------- */
+
+const other = w => (w === 'a' ? 'b' : 'a');
+
+function baseWho(monday) {
+  const { ref, every } = state.schedule;
+  const diff = Math.round((monday - ref.monday) / WEEK);
+  const block = Math.floor(diff / every);
+  return ((block % 2) + 2) % 2 === 0 ? ref.who : other(ref.who);
+}
+function whoInWeek(monday) {
+  return state.schedule.overrides[weekKey(monday)] || baseWho(monday);
+}
+const homeName = w => state.schedule.names[w] || (w === 'a' ? 'Mama' : 'Papa');
+const homeTint = (w, pct = 22) => `color-mix(in srgb, ${HOME_COLORS[w]} ${pct}%, var(--card))`;
+
+function renderWhere() {
+  const badge = $('whereBadge');
+  if (!state.schedule.enabled) { badge.hidden = true; return; }
+  const mon = mondayOf(todayMs());
+  const w = whoInWeek(mon);
+  badge.hidden = false;
+  badge.style.background = homeTint(w, 30);
+  badge.innerHTML = `🏠 ${escapeHtml(homeName(w))}-Woche <small>· KW ${isoWeek(mon).week}</small>`;
 }
 
 /* ---------- Aussehen ---------- */
@@ -374,6 +547,7 @@ function render() {
   $('editBtn').style.display = editing ? 'none' : '';
   const name = state.settings.name.trim();
   $('subtitle').textContent = name ? `Hast du alles eingepackt, ${name}?` : 'Hast du alles eingepackt?';
+  renderWhere();
 
   const list = $('list');
   list.innerHTML = '';
@@ -542,6 +716,125 @@ function addCategory() {
 $('addCatBtn').addEventListener('click', addCategory);
 $('newCatName').addEventListener('keydown', e => { if (e.key === 'Enter') addCategory(); });
 
+/* ---------- Kalender ---------- */
+
+let calMonth = null;      // { y, m } des angezeigten Monats
+let calEditing = false;
+
+function openCalendar(edit = false) {
+  const t = new Date(todayMs());
+  calMonth = { y: t.getUTCFullYear(), m: t.getUTCMonth() };
+  calEditing = edit;
+  renderCalendar();
+  $('calendar').classList.add('show');
+}
+function closeCalendar() { $('calendar').classList.remove('show'); calEditing = false; }
+
+function renderCalendar() {
+  const body = $('calBody');
+  if (!state.schedule.enabled) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="big">🗓️</div>
+        <p>Noch kein Wochenplan eingerichtet.<br>In den Einstellungen kannst du festlegen, in welcher Woche du wo bist.</p>
+        <button class="btn primary" id="calSetupBtn">⚙️ Wochenplan einrichten</button>
+      </div>`;
+    $('calSetupBtn').onclick = () => {
+      state.schedule.enabled = true; save();
+      closeCalendar(); render(); openSettings();
+      $('scheduleOptions').scrollIntoView({ block: 'center' });
+    };
+    return;
+  }
+
+  const today = todayMs();
+  const thisMon = mondayOf(today);
+  const now = whoInWeek(thisMon);
+  const next = whoInWeek(thisMon + WEEK);
+
+  let changeMon = null;
+  for (let i = 1; i <= 60; i++) {
+    if (whoInWeek(thisMon + i * WEEK) !== now) { changeMon = thisMon + i * WEEK; break; }
+  }
+
+  const { y, m } = calMonth;
+  const first = Date.UTC(y, m, 1);
+  const last = Date.UTC(y, m + 1, 0);
+  let rows = '';
+  for (let mon = mondayOf(first); mon <= last; mon += WEEK) {
+    const w = whoInWeek(mon);
+    const ovr = state.schedule.overrides[weekKey(mon)] ? '<span class="ovr" title="geändert">✱</span>' : '';
+    let cells = '';
+    for (let d = 0; d < 7; d++) {
+      const day = mon + d * DAY;
+      const cls = [new Date(day).getUTCMonth() !== m ? 'out' : '', day === today ? 'today' : ''].join(' ');
+      cells += `<td class="${cls}"><span>${new Date(day).getUTCDate()}</span></td>`;
+    }
+    rows += `<tr class="week ${mon === thisMon ? 'current' : ''}" data-mon="${mon}" style="background:${homeTint(w, 26)}">
+      <td>${isoWeek(mon).week}${ovr}</td>${cells}</tr>`;
+  }
+
+  const monthName = new Date(first).toLocaleDateString('de-DE', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+
+  body.innerHTML = `
+    <div class="now-cards">
+      <div class="now-card" style="background:${homeTint(now, 30)}">
+        <div class="lbl">Diese Woche (KW ${isoWeek(thisMon).week})</div>
+        <div class="who">🏠 ${escapeHtml(homeName(now))}</div>
+      </div>
+      <div class="now-card" style="background:${homeTint(next, 30)}">
+        <div class="lbl">Nächste Woche (KW ${isoWeek(thisMon + WEEK).week})</div>
+        <div class="who">🏠 ${escapeHtml(homeName(next))}</div>
+      </div>
+    </div>
+    ${changeMon ? `<p class="next-change">🔄 Nächster Wechsel: KW ${isoWeek(changeMon).week} (ab ${fmtDate(changeMon)}) zu ${escapeHtml(homeName(whoInWeek(changeMon)))}</p>` : ''}
+
+    <div class="month-nav">
+      <button class="icon-btn" id="calPrev" title="Voriger Monat">‹</button>
+      <strong>${monthName}</strong>
+      <button class="icon-btn" id="calNext" title="Nächster Monat">›</button>
+    </div>
+    <table class="cal ${calEditing ? 'editing' : ''}">
+      <thead><tr><th>KW</th><th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th><th>Sa</th><th>So</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="legend">
+      <span><span class="dot" style="width:14px;height:14px;border-radius:50%;background:var(--home-a)"></span>${escapeHtml(homeName('a'))}</span>
+      <span><span class="dot" style="width:14px;height:14px;border-radius:50%;background:var(--home-b)"></span>${escapeHtml(homeName('b'))}</span>
+      ${Object.keys(state.schedule.overrides).length ? '<span>✱ = geänderte Woche</span>' : ''}
+    </div>
+    ${calEditing
+      ? `<div class="cal-edit-hint">👆 Tippe auf eine Woche, um sie zu tauschen (z. B. für Ferien).</div>
+         <button class="btn primary big-btn" id="calEditToggle">✔️ Fertig mit Ändern</button>
+         ${Object.keys(state.schedule.overrides).length ? '<button class="btn big-btn" id="calClearOvr">↩️ Alle Änderungen zurücksetzen</button>' : ''}`
+      : '<button class="btn big-btn" id="calEditToggle">✏️ Wochen ändern</button>'}
+  `;
+
+  $('calPrev').onclick = () => { calMonth = { y: m === 0 ? y - 1 : y, m: (m + 11) % 12 }; renderCalendar(); };
+  $('calNext').onclick = () => { calMonth = { y: m === 11 ? y + 1 : y, m: (m + 1) % 12 }; renderCalendar(); };
+  $('calEditToggle').onclick = () => { calEditing = !calEditing; renderCalendar(); };
+  if ($('calClearOvr')) $('calClearOvr').onclick = () => {
+    if (!confirm('Alle einzeln geänderten Wochen zurücksetzen?')) return;
+    state.schedule.overrides = {};
+    save(); renderCalendar(); renderWhere();
+  };
+  if (calEditing) {
+    body.querySelectorAll('tr.week').forEach(tr => tr.addEventListener('click', () => {
+      const mon = Number(tr.dataset.mon);
+      const key = weekKey(mon);
+      const swapped = other(whoInWeek(mon));
+      if (swapped === baseWho(mon)) delete state.schedule.overrides[key];
+      else state.schedule.overrides[key] = swapped;
+      save(); renderCalendar(); renderWhere();
+    }));
+  }
+}
+
+$('calBtn').addEventListener('click', () => openCalendar());
+$('whereBadge').addEventListener('click', () => openCalendar());
+$('closeCal').addEventListener('click', closeCalendar);
+$('calendar').addEventListener('click', e => { if (e.target.id === 'calendar') closeCalendar(); });
+
 /* ---------- Einstellungen ---------- */
 
 function renderSettings() {
@@ -555,7 +848,63 @@ function renderSettings() {
   $('customColor').addEventListener('input', e => setColor(e.target.value));
   document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('sel', b.dataset.mode === s.mode));
   document.querySelectorAll('#confettiSeg button').forEach(b => b.classList.toggle('sel', (b.dataset.v === 'on') === s.confetti));
+  renderScheduleSettings();
+  renderBackupInfo();
 }
+
+function renderScheduleSettings() {
+  const sc = state.schedule;
+  document.querySelectorAll('#schedOnSeg button').forEach(b => b.classList.toggle('sel', (b.dataset.v === 'on') === sc.enabled));
+  $('scheduleOptions').classList.toggle('off', !sc.enabled);
+  if (document.activeElement !== $('homeA')) $('homeA').value = sc.names.a;
+  if (document.activeElement !== $('homeB')) $('homeB').value = sc.names.b;
+  document.querySelectorAll('#everySeg button').forEach(b => b.classList.toggle('sel', Number(b.dataset.v) === sc.every));
+
+  const thisMon = mondayOf(todayMs());
+  $('thisWeekLabel').textContent = `Diese Woche (KW ${isoWeek(thisMon).week}) ist sie bei:`;
+  const base = baseWho(thisMon);
+  $('thisWeekSeg').innerHTML = ['a', 'b'].map(w =>
+    `<button data-v="${w}" class="${w === base ? 'sel' : ''}">🏠 ${escapeHtml(homeName(w))}</button>`).join('');
+
+  $('blockPosWrap').style.display = sc.every === 2 ? '' : 'none';
+  const diff = Math.round((thisMon - sc.ref.monday) / WEEK);
+  const pos = ((diff % 2) + 2) % 2;
+  document.querySelectorAll('#blockPosSeg button').forEach(b => b.classList.toggle('sel', Number(b.dataset.v) === pos));
+}
+
+// Setzt den Bezugspunkt so, dass diese Woche bei `who` ist (und ggf. die pos-te Woche im 2er-Block)
+function setThisWeek(who, pos = 0) {
+  const thisMon = mondayOf(todayMs());
+  state.schedule.ref = { monday: thisMon - pos * WEEK, who };
+  delete state.schedule.overrides[weekKey(thisMon)];
+  save(); renderScheduleSettings(); renderWhere();
+}
+
+$('schedOnSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  state.schedule.enabled = b.dataset.v === 'on';
+  save(); renderScheduleSettings(); renderWhere();
+});
+$('homeA').addEventListener('input', e => { state.schedule.names.a = e.target.value; save(); renderScheduleSettings(); renderWhere(); });
+$('homeB').addEventListener('input', e => { state.schedule.names.b = e.target.value; save(); renderScheduleSettings(); renderWhere(); });
+$('everySeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const thisMon = mondayOf(todayMs());
+  const who = baseWho(thisMon);
+  state.schedule.every = Number(b.dataset.v);
+  setThisWeek(who, 0);
+});
+$('thisWeekSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  const thisMon = mondayOf(todayMs());
+  const pos = ((Math.round((thisMon - state.schedule.ref.monday) / WEEK) % 2) + 2) % 2;
+  setThisWeek(b.dataset.v, state.schedule.every === 2 ? pos : 0);
+});
+$('blockPosSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  setThisWeek(baseWho(mondayOf(todayMs())), Number(b.dataset.v));
+});
+$('editWeeksBtn').addEventListener('click', () => { closeSettings(); openCalendar(true); });
 
 function setColor(c) {
   state.settings.color = c;
@@ -597,6 +946,63 @@ $('restoreBtn').addEventListener('click', () => {
   save(); render(); closeSettings();
 });
 
+/* ---------- Backup ---------- */
+
+function renderBackupInfo() {
+  $('backupInfo').textContent = state.lastBackup
+    ? `Letztes Backup: ${new Date(state.lastBackup).toLocaleDateString('de-DE')}. Enthält Liste, Einstellungen und Wochenplan.`
+    : 'Noch kein Backup gemacht. Das Backup enthält Liste, Einstellungen und Wochenplan – speichere es z. B. in „Dateien“ oder schick es dir selbst.';
+}
+
+$('backupBtn').addEventListener('click', async () => {
+  state.lastBackup = new Date().toISOString();
+  save();
+  const data = JSON.stringify({ app: 'checkbag', version: 1, ...state }, null, 2);
+  const filename = `checkbag-backup-${state.lastBackup.slice(0, 10)}.json`;
+  const file = new File([data], filename, { type: 'application/json' });
+
+  // Auf dem Handy: Teilen-Menü (in Dateien sichern, per Nachricht schicken …)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Checkbag Backup' });
+      toast('💾 Backup gespeichert');
+      renderBackupInfo();
+      return;
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast('💾 Backup heruntergeladen');
+  renderBackupInfo();
+});
+
+$('restoreBackupBtn').addEventListener('click', () => $('backupFile').click());
+$('backupFile').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  let data;
+  try { data = JSON.parse(await f.text()); } catch (err) { data = null; }
+  if (!data || !Array.isArray(data.categories)) {
+    alert('Das ist leider keine gültige Checkbag-Backup-Datei.');
+    return;
+  }
+  const count = data.categories.reduce((n, c) => n + (c.items || []).length, 0);
+  if (!confirm(`Backup laden?\n${data.categories.length} Kategorien, ${count} Sachen.\n\nDeine aktuelle Liste und Einstellungen werden dabei ersetzt.`)) return;
+  delete data.app; delete data.version;
+  state = normalize(data);
+  save();
+  applyTheme(); render(); renderSettings();
+  toast('✅ Backup geladen');
+});
+
 /* ---------- Sonstiges ---------- */
 
 $('closeCelebrate').addEventListener('click', () => $('celebrate').classList.remove('show'));
@@ -615,11 +1021,18 @@ $('resetBtn').addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
+// Wochenanzeige aktuell halten, wenn die App lange offen bleibt
+document.addEventListener('visibilitychange', () => { if (!document.hidden) renderWhere(); });
+
 // Beim Start nicht sofort feiern, wenn schon alles abgehakt war
 celebratedThisRound = state.categories.flatMap(c => c.items).every(i => i.checked);
+$('version').textContent = 'v' + APP_VERSION;
 applyTheme();
 renderEmojiGrid();
 render();
+
+// Browser bitten, die Daten nicht automatisch zu löschen
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
